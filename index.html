@@ -513,6 +513,132 @@
       }
     }
 
+
+
+    /* Final question reveal */
+    .card.final-mode {
+      border-color: rgba(217, 120, 143, 0.34);
+      box-shadow:
+        0 26px 78px rgba(97, 57, 69, 0.18),
+        0 0 0 7px rgba(255, 255, 255, 0.20),
+        0 0 70px rgba(217, 120, 143, 0.16);
+      transition: box-shadow 700ms ease, border-color 700ms ease;
+    }
+
+    .final-stage .final-mascot,
+    .final-stage .final-kicker,
+    .final-stage .question-line,
+    .final-stage .final-subcopy,
+    .final-stage .final-button-wrap {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+      transition:
+        opacity 560ms ease,
+        transform 660ms cubic-bezier(.2,.78,.24,1);
+    }
+
+    .final-stage .final-mascot.show,
+    .final-stage .final-kicker.show,
+    .final-stage .question-line.show,
+    .final-stage .final-subcopy.show,
+    .final-stage .final-button-wrap.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .final-stage .final-mascot.show {
+      animation: finalBearFloat 3.8s ease-in-out 720ms infinite;
+    }
+
+    .final-question {
+      margin: 20px 0 0;
+      text-align: center;
+    }
+
+    .question-line {
+      display: block;
+      color: var(--text);
+      font-weight: 720;
+      letter-spacing: -1.1px;
+      line-height: 1.02;
+    }
+
+    .question-line.first {
+      font-size: clamp(25px, 6vw, 34px);
+      color: #65565b;
+    }
+
+    .question-line.main {
+      margin-top: 5px;
+      font-size: clamp(34px, 8vw, 48px);
+      color: var(--accent-dark);
+      text-shadow: 0 10px 32px rgba(197, 95, 121, 0.18);
+    }
+
+    .final-subcopy {
+      margin-top: 18px;
+    }
+
+    .final-button-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 999px;
+    }
+
+    .final-button-wrap button {
+      margin-top: 0;
+    }
+
+    .final-button-wrap.show::after {
+      content: "";
+      position: absolute;
+      top: -40%;
+      left: -36%;
+      width: 28%;
+      height: 180%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.56),
+        transparent
+      );
+      transform: rotate(18deg);
+      pointer-events: none;
+      animation: buttonShimmer 2.8s ease-in-out 500ms infinite;
+    }
+
+    .final-heartbeat {
+      display: inline-block;
+      animation: tinyHeartbeat 1.8s ease-in-out infinite;
+    }
+
+    @keyframes finalBearFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-5px) scale(1.015); }
+    }
+
+    @keyframes buttonShimmer {
+      0%, 38% { left: -36%; opacity: 0; }
+      48% { opacity: 1; }
+      68%, 100% { left: 112%; opacity: 0; }
+    }
+
+    @keyframes tinyHeartbeat {
+      0%, 100% { transform: scale(1); }
+      12% { transform: scale(1.13); }
+      24% { transform: scale(1); }
+      36% { transform: scale(1.09); }
+      48% { transform: scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .final-stage .final-mascot.show,
+      .final-button-wrap.show::after,
+      .final-heartbeat {
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -669,16 +795,19 @@
 
       if (step === 7) {
         app.innerHTML = `
-          <div class="content soft-center">
+          <div class="content soft-center final-stage">
             <div>
-              <img class="mascot mascot-large" src="assets/bear-flower.png" alt="" />
-              <div class="tiny">One little question</div>
-              <h1 class="question">Can you be my girlfriend?</h1>
-              <p>Please look at me after this.</p>
+              <img class="mascot mascot-large final-mascot" src="assets/bear-flower.png" alt="" />
+              <div class="tiny final-kicker">One little question</div>
+              <h1 class="final-question">
+                <span class="question-line first">Can you</span>
+                <span class="question-line main">be my girlfriend?</span>
+              </h1>
+              <p class="final-subcopy">And then… please look at me.</p>
             </div>
           </div>
-          <div class="controls">
-            <button onclick="goNext()">Look at me 🤍</button>
+          <div class="controls final-button-wrap">
+            <button onclick="goNext()">Look at me <span class="final-heartbeat">🤍</span></button>
           </div>
         `;
       }
@@ -712,9 +841,44 @@
         setTimeout(startDearTyping, 220);
       }
 
+      app.classList.toggle("final-mode", step === 7);
+
       if (step === 7) {
-        setTimeout(launchLoveParticles, 240);
+        startFinalReveal();
       }
+    }
+
+
+    function startFinalReveal() {
+      const stage = app.querySelector(".final-stage");
+      if (!stage) return;
+
+      const mascot = stage.querySelector(".final-mascot");
+      const kicker = stage.querySelector(".final-kicker");
+      const firstLine = stage.querySelector(".question-line.first");
+      const mainLine = stage.querySelector(".question-line.main");
+      const subcopy = stage.querySelector(".final-subcopy");
+      const buttonWrap = app.querySelector(".final-button-wrap");
+
+      const reveal = (element, delay) => {
+        if (!element) return;
+        setTimeout(() => {
+          if (step === 7 && document.body.contains(element)) {
+            element.classList.add("show");
+          }
+        }, delay);
+      };
+
+      reveal(mascot, 160);
+      reveal(kicker, 620);
+      reveal(firstLine, 1050);
+      reveal(mainLine, 1510);
+      reveal(subcopy, 2080);
+      reveal(buttonWrap, 2600);
+
+      setTimeout(() => {
+        if (step === 7) launchLoveParticles();
+      }, 1050);
     }
 
     function enableMascotReaction() {
