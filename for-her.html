@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>For You</title>
+  <link rel="preload" as="image" href="assets/bear-welcome.png" />
+  <link rel="preload" as="image" href="assets/bear-name.png" />
+  <link rel="preload" as="image" href="assets/bear-letter.png" />
+  <link rel="preload" as="image" href="assets/bear-countdown-3.png" />
+  <link rel="preload" as="image" href="assets/bear-countdown-2.png" />
+  <link rel="preload" as="image" href="assets/bear-countdown-1.png" />
+  <link rel="preload" as="image" href="assets/bear-peek.png" />
+  <link rel="preload" as="image" href="assets/bear-flower.png" />
+  <link rel="preload" as="image" href="assets/bear-point.png" />
   <style>
     :root {
       --bg1: #fff7f1;
@@ -731,9 +740,82 @@
       }
     }
 
+
+
+    /* v16: smooth mood backgrounds and page crossfade */
+    body {
+      position: relative;
+      isolation: isolate;
+      background: #fff7f1;
+    }
+
+    .mood-layer {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1050ms ease;
+      will-change: opacity;
+    }
+
+    .mood-layer.active {
+      opacity: 1;
+    }
+
+    .bg-shape {
+      z-index: -2;
+    }
+
+    .phone-frame {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition:
+        opacity 280ms ease,
+        transform 300ms cubic-bezier(.2,.75,.25,1),
+        box-shadow 700ms ease,
+        border-color 700ms ease;
+    }
+
+    .card.page-fade-out {
+      opacity: 0;
+      transform: translateY(7px) scale(0.988);
+    }
+
+    .card.page-fade-in {
+      animation: pageCrossfadeIn 440ms cubic-bezier(.2,.75,.25,1) both;
+    }
+
+    @keyframes pageCrossfadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.988);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mood-layer,
+      .card,
+      .card.page-fade-in {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
+  <div class="mood-layer mood-layer-a active" id="moodLayerA"></div>
+  <div class="mood-layer mood-layer-b" id="moodLayerB"></div>
   <div class="bg-shape shape-one"></div>
   <div class="bg-shape shape-two"></div>
 
@@ -749,9 +831,94 @@
     let typingFullText = "";
     let reactionTimer = null;
     let transitionLocked = false;
+    let activeMoodLayer = 0;
+    let firstRender = true;
 
     const app = document.getElementById("app");
     const effectsLayer = document.getElementById("effectsLayer");
+    const moodLayers = [
+      document.getElementById("moodLayerA"),
+      document.getElementById("moodLayerB")
+    ];
+
+    const mascotAssets = [
+      "assets/bear-welcome.png",
+      "assets/bear-name.png",
+      "assets/bear-letter.png",
+      "assets/bear-countdown-3.png",
+      "assets/bear-countdown-2.png",
+      "assets/bear-countdown-1.png",
+      "assets/bear-peek.png",
+      "assets/bear-flower.png",
+      "assets/bear-point.png"
+    ];
+
+    const moodBackgrounds = [
+      "radial-gradient(circle at 15% 10%, rgba(255,255,255,.96), transparent 34%), radial-gradient(circle at 90% 85%, rgba(255,224,232,.78), transparent 35%), linear-gradient(145deg, #fff9f3, #ffedf2)",
+      "radial-gradient(circle at 18% 12%, rgba(255,255,255,.96), transparent 34%), radial-gradient(circle at 88% 84%, rgba(255,218,230,.82), transparent 36%), linear-gradient(145deg, #fff7f2, #ffe9f0)",
+      "radial-gradient(circle at 16% 10%, rgba(255,255,255,.94), transparent 33%), radial-gradient(circle at 88% 86%, rgba(246,197,214,.54), transparent 37%), linear-gradient(145deg, #fff6f1, #ffe2eb)",
+      "radial-gradient(circle at 14% 9%, rgba(255,255,255,.93), transparent 32%), radial-gradient(circle at 90% 86%, rgba(241,180,201,.58), transparent 38%), linear-gradient(145deg, #fff5ef, #ffdee8)",
+      "radial-gradient(circle at 14% 9%, rgba(255,255,255,.92), transparent 31%), radial-gradient(circle at 90% 86%, rgba(235,160,188,.62), transparent 39%), linear-gradient(145deg, #fff3ee, #ffd9e5)",
+      "radial-gradient(circle at 13% 8%, rgba(255,255,255,.90), transparent 31%), radial-gradient(circle at 90% 87%, rgba(226,139,174,.66), transparent 40%), linear-gradient(145deg, #fff1ec, #ffd3e1)",
+      "radial-gradient(circle at 13% 8%, rgba(255,255,255,.90), transparent 31%), radial-gradient(circle at 90% 87%, rgba(218,121,161,.68), transparent 41%), linear-gradient(145deg, #fff0eb, #ffcddd)",
+      "radial-gradient(circle at 12% 8%, rgba(255,255,255,.88), transparent 30%), radial-gradient(circle at 88% 88%, rgba(206,99,146,.72), transparent 42%), linear-gradient(145deg, #ffefea, #ffc5d8)",
+      "radial-gradient(circle at 16% 10%, rgba(255,255,255,.95), transparent 34%), radial-gradient(circle at 90% 85%, rgba(255,214,227,.76), transparent 36%), linear-gradient(145deg, #fff8f2, #ffe7ef)"
+    ];
+
+
+    function preloadMascots() {
+      mascotAssets.forEach(src => {
+        const image = new Image();
+        image.decoding = "async";
+        image.src = src;
+      });
+    }
+
+    function applyMood(stepNumber, immediate = false) {
+      const background = moodBackgrounds[stepNumber] || moodBackgrounds[0];
+
+      if (immediate) {
+        moodLayers[0].style.background = background;
+        moodLayers[0].classList.add("active");
+        moodLayers[1].classList.remove("active");
+        activeMoodLayer = 0;
+        return;
+      }
+
+      const nextLayer = activeMoodLayer === 0 ? 1 : 0;
+      moodLayers[nextLayer].style.background = background;
+      moodLayers[nextLayer].classList.add("active");
+      moodLayers[activeMoodLayer].classList.remove("active");
+      activeMoodLayer = nextLayer;
+    }
+
+    function fadeOutBefore(callback, totalDelay, fadeDuration = 280) {
+      const fadeStart = Math.max(0, totalDelay - fadeDuration);
+
+      setTimeout(() => {
+        app.classList.remove("page-fade-in");
+        app.classList.add("page-fade-out");
+      }, fadeStart);
+
+      setTimeout(callback, totalDelay);
+    }
+
+    function changePageWithoutShake(callback) {
+      if (transitionLocked) return;
+      transitionLocked = true;
+
+      app.querySelectorAll("button").forEach(button => {
+        button.disabled = true;
+      });
+
+      app.classList.remove("page-fade-in");
+      app.classList.add("page-fade-out");
+
+      setTimeout(() => {
+        callback();
+        transitionLocked = false;
+      }, 280);
+    }
 
     function escapeHTML(value) {
       return String(value)
@@ -921,6 +1088,14 @@
     function setupAfterRender() {
       clearTyping();
       clearEffects();
+      applyMood(step, firstRender);
+      firstRender = false;
+
+      app.classList.remove("page-fade-out", "page-fade-in");
+      void app.offsetWidth;
+      app.classList.add("page-fade-in");
+      setTimeout(() => app.classList.remove("page-fade-in"), 480);
+
       enableMascotReaction();
 
       if (step === 2) {
@@ -980,7 +1155,7 @@
       button.classList.add("is-leaving");
       button.textContent = "Okay… here goes 😳";
 
-      setTimeout(() => {
+      fadeOutBefore(() => {
         step = 8;
         render();
         transitionLocked = false;
@@ -1178,7 +1353,7 @@
         mascot.classList.add("page-transition-shake");
       }
 
-      setTimeout(() => {
+      fadeOutBefore(() => {
         callback();
         transitionLocked = false;
       }, delay);
@@ -1192,7 +1367,7 @@
       button.textContent = "No turning back now 😳";
       button.style.opacity = "0.94";
 
-      setTimeout(() => {
+      fadeOutBefore(() => {
         step += 1;
         render();
         transitionLocked = false;
@@ -1203,8 +1378,10 @@
       // Countdown page "3" changes immediately without shaking.
       // Countdown pages "2" and "1" still use the nervous shake.
       if (step === 3) {
-        step += 1;
-        render();
+        changePageWithoutShake(() => {
+          step += 1;
+          render();
+        });
         return;
       }
 
@@ -1224,8 +1401,10 @@
         return;
       }
 
-      step = 2;
-      render();
+      changePageWithoutShake(() => {
+        step = 2;
+        render();
+      });
     }
 
     function restart() {
@@ -1237,6 +1416,7 @@
       render();
     }
 
+    preloadMascots();
     render();
   </script>
 </body>

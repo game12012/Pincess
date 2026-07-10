@@ -1,0 +1,105 @@
+FOR HER WEB APP — FUNCTION SUMMARY (v16)
+================================================
+
+PROJECT PURPOSE
+A small mobile-first web experience designed to help ask someone:
+“Can you be my girlfriend?”
+The website is intended to be opened through a QR code on iPhone or iPad.
+
+PAGE FLOW
+1. Welcome page
+   - Bear waves hello.
+   - Text: “I made something small for you.”
+   - Button: Start
+
+2. Name page
+   - User enters her name.
+   - Empty-name validation is included.
+   - Button: Continue
+   - This page changes without the bear-shake effect.
+
+3. Dear [Name] page
+   - The entered name appears in the heading.
+   - Personal message appears with a slow typewriter effect.
+   - The message can be tapped to reveal all text immediately.
+   - Button: Keep going
+
+4. Countdown page — 3
+   - Bear begins to look nervous.
+   - Button: Here we go
+   - This page changes without the bear-shake effect.
+
+5. Countdown page — 2
+   - Nervous mood increases.
+   - Button: A little more
+   - Bear shakes gently before changing page.
+
+6. Countdown page — 1
+   - Final nervous countdown moment.
+   - Button: One last step
+   - Bear shakes gently before changing page.
+
+7. Are you sure? page
+   - Button: Okay… show me 🤍
+   - After pressing, the button changes to:
+     “No turning back now 😳”
+   - The message stays for 2 seconds.
+   - This page does not use the bear-shake effect.
+
+8. Final question page
+   - Bear holds and gently moves a bouquet.
+   - “Can you” appears first.
+   - “be my girlfriend?” appears afterward and is more prominent.
+   - Soft hearts and flower particles float in the background.
+   - The card receives a subtle glow.
+   - The final button appears after the question.
+   - Button: Look at me 🤍
+   - After pressing, it changes to “Okay… here goes 😳” for 1 second.
+
+9. Look at me page
+   - The page becomes calm and minimal.
+   - Bear points toward the viewer once.
+   - Text appears in two stages:
+     “Now look at me.”
+     “I’ll ask you properly myself. 🤍”
+   - No restart button is shown, so the real-life moment is not interrupted.
+
+INTERACTIVE FEATURES
+- Tap any bear to see a small reaction message.
+- Bear performs a small bounce reaction when tapped.
+- Slow typewriter effect on the Dear page.
+- Gentle bear shake on selected page transitions only.
+- Soft heart and flower particles on the final-question page.
+- Bouquet sway and subtle floating bear animation.
+- Final button shimmer and heartbeat animation.
+- Respect for reduced-motion accessibility settings.
+
+NEW IN v16
+- Background color gradually becomes warmer and pinker as the story progresses.
+- The last page returns to a calmer cream/pink background.
+- Every page transition now uses a smooth crossfade.
+- All nine bear images are preloaded from the first page to reduce image flicker.
+- The Netlify ZIP includes the complete assets folder.
+
+MOBILE SUPPORT
+- Designed mobile-first for iPhone and iPad.
+- Supports safe-area spacing on iOS.
+- Vertical scrolling is enabled for smaller screens.
+- Font size and spacing automatically adjust on short screens.
+
+FILES
+- index.html: Main website file used by Netlify.
+- for-her.html: Duplicate standalone website file.
+- assets/: Contains all nine bear PNG images.
+- for-her-bear-playful-v16-netlify.zip: Upload this ZIP to Netlify.
+
+DEPLOYMENT
+1. Open the Netlify deploy page for the existing site.
+2. Upload or drag the v16 Netlify ZIP into the deploy area.
+3. Wait until the production deploy is complete.
+4. Open the website on an iPhone and test the full flow once.
+5. Scan the printed QR code to confirm it still opens the correct URL.
+
+PRIVACY NOTE
+The website does not use a database and does not save the entered name.
+The name only exists temporarily inside the browser while the page is open.
