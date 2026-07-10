@@ -1,4 +1,4 @@
-FOR HER WEB APP — FUNCTION SUMMARY (v16)
+FOR HER WEB APP — FUNCTION SUMMARY (v24)
 ================================================
 
 PROJECT PURPOSE
@@ -104,3 +104,7 @@ DEPLOYMENT
 PRIVACY NOTE
 The website does not use a database and does not save the entered name.
 The name only exists temporarily inside the browser while the page is open.
+
+
+V24 FIX
+- Fixed a JavaScript syntax issue that caused a blank white page.
