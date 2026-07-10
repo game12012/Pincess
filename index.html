@@ -99,20 +99,6 @@
       animation: fadeUp 420ms ease both;
     }
 
-    .tiny {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 34px;
-      padding: 8px 12px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: 13px;
-      letter-spacing: 0.2px;
-      background: rgba(255, 255, 255, 0.52);
-    }
-
     .icon {
       width: 54px;
       height: 54px;
@@ -336,11 +322,6 @@
         min-height: auto;
         padding: 24px 20px 22px;
         border-radius: 28px;
-      }
-
-      .tiny {
-        margin-bottom: 20px;
-        font-size: 12px;
       }
 
       .icon {
@@ -812,8 +793,7 @@
         <div class="content soft-center">
           <div>
             <img class="mascot mascot-large" src="${countdownMascots[number]}" alt="" />
-            <div class="tiny">Almost the last step</div>
-            <div class="countdown-number">${number}</div>
+<div class="countdown-number">${number}</div>
             <p>${messages[number] || "Okay… here we go 🤍"}</p>
           </div>
         </div>
@@ -827,8 +807,7 @@
       if (step === 0) {
         app.innerHTML = `
           <div class="content">
-            <div class="tiny">For you · a little surprise</div>
-            <img class="mascot" src="assets/bear-welcome.png" alt="" />
+<img class="mascot" src="assets/bear-welcome.png" alt="" />
             <h1>I made something small for you.</h1>
             <p>It’s not perfect, but it’s from me. So… please go through this little page first.</p>
           </div>
@@ -842,8 +821,7 @@
       if (step === 1) {
         app.innerHTML = `
           <div class="content">
-            <div class="tiny">Step 1</div>
-            <img class="mascot" src="assets/bear-name.png" alt="" />
+<img class="mascot" src="assets/bear-name.png" alt="" />
             <h1>And your name?</h1>
             <p>Just so this little page knows who it was made for.</p>
           </div>
@@ -862,8 +840,7 @@
         const safeName = escapeHTML(personName.trim());
         app.innerHTML = `
           <div class="content">
-            <div class="tiny">Almost there</div>
-            <img class="mascot" src="assets/bear-letter.png" alt="" />
+<img class="mascot" src="assets/bear-letter.png" alt="" />
             <h1>Dear ${safeName},</h1>
             <p>I’m not always good at saying things at the right time, so I made this little page for you.</p>
             <div class="note typewriter typing-caret" id="dearNote" role="button" tabindex="0" aria-label="Tap to reveal the full message"></div>
@@ -893,8 +870,7 @@
           <div class="content soft-center">
             <div>
               <img class="mascot mascot-large" src="assets/bear-peek.png" alt="" />
-              <div class="tiny">Before the last page</div>
-              <h1>Are you sure?</h1>
+<h1>Are you sure?</h1>
               <p class="sure-copy">If you press this, there’s no going back for me anymore.</p>
               <p class="mini-note">Okay maybe a little dramatic… but I mean it 🤍</p>
             </div>
@@ -910,8 +886,7 @@
           <div class="content soft-center final-stage">
             <div>
               <img class="mascot mascot-large final-mascot bouquet-sway" src="assets/bear-flower.png" alt="" />
-              <div class="tiny final-kicker">One little question</div>
-              <h1 class="final-question">
+<h1 class="final-question">
                 <span class="question-line first">Can you</span>
                 <span class="question-line main">be my girlfriend?</span>
               </h1>
