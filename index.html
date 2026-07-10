@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>For You</title>
+  <style>
+    :root {
+      --bg1: #fff7f1;
+      --bg2: #ffe8ef;
+      --card: rgba(255, 255, 255, 0.78);
+      --text: #3b3134;
+      --muted: #7d6d72;
+      --accent: #d9788f;
+      --accent-dark: #c55f79;
+      --line: rgba(217, 120, 143, 0.22);
+      --shadow: 0 24px 70px rgba(97, 57, 69, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.95), transparent 34%),
+        radial-gradient(circle at 90% 85%, rgba(255, 210, 224, 0.88), transparent 34%),
+        linear-gradient(145deg, var(--bg1), var(--bg2));
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .bg-shape {
+      position: fixed;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.42);
+      filter: blur(1px);
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .shape-one {
+      width: 130px;
+      height: 130px;
+      top: 9%;
+      right: -35px;
+    }
+
+    .shape-two {
+      width: 90px;
+      height: 90px;
+      left: -24px;
+      bottom: 12%;
+      animation-delay: -2s;
+    }
+
+    .phone-frame {
+      width: min(100%, 430px);
+      margin: auto 0;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      min-height: min(520px, calc(100svh - 36px));
+      background: var(--card);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 34px;
+      box-shadow: var(--shadow);
+      padding: 34px 28px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: visible;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.68), transparent 45%);
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 420ms ease both;
+    }
+
+    .tiny {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 34px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.2px;
+      background: rgba(255, 255, 255, 0.52);
+    }
+
+    .icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 22px;
+      border-radius: 20px;
+      background: rgba(217, 120, 143, 0.12);
+      font-size: 25px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 7vw, 44px);
+      line-height: 1.04;
+      letter-spacing: -1.4px;
+      font-weight: 720;
+    }
+
+    p {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .note {
+      margin-top: 28px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.52);
+      color: #66585d;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .question {
+      margin-top: 26px;
+      color: var(--text);
+      font-size: clamp(30px, 7vw, 42px);
+      line-height: 1.08;
+      letter-spacing: -1.2px;
+    }
+
+    .controls {
+      position: relative;
+      z-index: 1;
+      margin-top: 34px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      color: #65565b;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      appearance: none;
+      border: 1px solid rgba(125, 109, 114, 0.18);
+      border-radius: 18px;
+      padding: 16px 16px;
+      font-size: 17px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.72);
+      outline: none;
+      transition: 160ms ease;
+    }
+
+    input:focus {
+      border-color: rgba(217, 120, 143, 0.7);
+      box-shadow: 0 0 0 4px rgba(217, 120, 143, 0.12);
+    }
+
+    button {
+      width: 100%;
+      min-height: 54px;
+      margin-top: 18px;
+      border: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: white;
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: 0.1px;
+      cursor: pointer;
+      box-shadow: 0 14px 28px rgba(197, 95, 121, 0.25);
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 8px 18px rgba(197, 95, 121, 0.22);
+    }
+
+    .secondary-button {
+      background: rgba(255, 255, 255, 0.64);
+      color: #7d6d72;
+      box-shadow: none;
+      border: 1px solid rgba(125, 109, 114, 0.15);
+    }
+
+    .progress {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 7px;
+      justify-content: center;
+      margin-top: 26px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(125, 109, 114, 0.2);
+    }
+
+    .dot.active {
+      width: 22px;
+      border-radius: 999px;
+      background: rgba(217, 120, 143, 0.76);
+    }
+
+    .error {
+      margin-top: 10px;
+      min-height: 20px;
+      color: #b84d67;
+      font-size: 13px;
+    }
+
+    .soft-center {
+      text-align: center;
+      display: grid;
+      place-items: center;
+      min-height: 430px;
+    }
+
+    .soft-center .icon {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+
+    .mascot {
+      display: block;
+      width: 118px;
+      height: 118px;
+      object-fit: contain;
+      margin: 0 auto 16px;
+      border-radius: 0;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .mascot-large {
+      width: 132px;
+      height: 132px;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 16px;
+    }
+
+    .soft-center .mascot {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+
+
+    .countdown-number {
+      margin: 10px 0 8px;
+      font-size: clamp(88px, 28vw, 138px);
+      line-height: 0.9;
+      letter-spacing: -6px;
+      font-weight: 760;
+      color: var(--accent-dark);
+      text-shadow: 0 14px 40px rgba(197, 95, 121, 0.18);
+      animation: popIn 420ms ease both;
+    }
+
+    .sure-copy {
+      max-width: 310px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .mini-note {
+      margin-top: 14px;
+      color: #8a7a7f;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.86) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(18px); }
+    }
+
+
+    @media (max-height: 700px) {
+      body {
+        align-items: flex-start;
+      }
+
+      .card {
+        min-height: auto;
+        padding: 24px 20px 22px;
+        border-radius: 28px;
+      }
+
+      .tiny {
+        margin-bottom: 20px;
+        font-size: 12px;
+      }
+
+      .icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        border-radius: 18px;
+        font-size: 23px;
+      }
+
+      .mascot {
+        width: 94px;
+        height: 94px;
+        margin-bottom: 10px;
+        border-radius: 0;
+      }
+
+      .mascot-large {
+        width: 104px;
+        height: 104px;
+        margin-bottom: 10px;
+      }
+
+      h1 {
+        font-size: clamp(28px, 9vw, 38px);
+      }
+
+      p {
+        margin-top: 14px;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      .note {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .controls {
+        margin-top: 24px;
+      }
+
+      .soft-center {
+        min-height: auto;
+        padding: 20px 0 8px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      body { padding: 16px; }
+      .card { min-height: 500px; padding: 28px 22px 24px; border-radius: 28px; }
+      p { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-shape shape-one"></div>
+  <div class="bg-shape shape-two"></div>
+
+  <main class="phone-frame">
+    <section class="card" id="app"></section>
+  </main>
+
+  <script>
+    let step = 0;
+    let personName = "";
+
+    const app = document.getElementById("app");
+
+    function escapeHTML(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function dots(activeIndex) {
+      return `
+        <div class="progress" aria-hidden="true">
+          ${[0, 1, 2].map(i => `<span class="dot ${i === activeIndex ? "active" : ""}"></span>`).join("")}
+        </div>
+      `;
+    }
+
+    function countdownPage(number) {
+      const messages = {
+        3: "Okay… here we go 😅",
+        2: "Wait… why am I suddenly nervous?",
+        1: "Alright… this is the part I’ve been waiting for 🤍"
+      };
+
+      const buttonLabels = {
+        3: "Here we go",
+        2: "A little more",
+        1: "One last step"
+      };
+
+      const countdownMascots = {
+        3: "assets/bear-countdown-3.png",
+        2: "assets/bear-countdown-2.png",
+        1: "assets/bear-countdown-1.png"
+      };
+
+      app.innerHTML = `
+        <div class="content soft-center">
+          <div>
+            <img class="mascot mascot-large" src="${countdownMascots[number]}" alt="" />
+            <div class="tiny">Almost the last step</div>
+            <div class="countdown-number">${number}</div>
+            <p>${messages[number] || "Okay… here we go 🤍"}</p>
+          </div>
+        </div>
+        <div class="controls">
+          <button onclick="goNext()">${buttonLabels[number] || "Next"}</button>
+        </div>
+      `;
+    }
+
+    function render() {
+      if (step === 0) {
+        app.innerHTML = `
+          <div class="content">
+            <div class="tiny">For you · a little surprise</div>
+            <img class="mascot" src="assets/bear-welcome.png" alt="" />
+            <h1>I made something small for you.</h1>
+            <p>It’s not perfect, but it’s from me. So… please go through this little page first.</p>
+          </div>
+          <div class="controls">
+            <button onclick="goNext()">Start</button>
+            ${dots(0)}
+          </div>
+        `;
+      }
+
+      if (step === 1) {
+        app.innerHTML = `
+          <div class="content">
+            <div class="tiny">Step 1</div>
+            <img class="mascot" src="assets/bear-name.png" alt="" />
+            <h1>And your name?</h1>
+            <p>Just so this little page knows who it was made for.</p>
+          </div>
+          <div class="controls">
+            <label for="personName">Name</label>
+            <input id="personName" type="text" placeholder="Your name" autocomplete="name" value="${escapeHTML(personName)}" />
+            <div class="error" id="nameError"></div>
+            <button onclick="saveName()">Continue</button>
+            ${dots(1)}
+          </div>
+        `;
+        setTimeout(() => document.getElementById("personName").focus(), 100);
+      }
+
+      if (step === 2) {
+        const safeName = escapeHTML(personName.trim());
+        app.innerHTML = `
+          <div class="content">
+            <div class="tiny">Almost there</div>
+            <img class="mascot" src="assets/bear-letter.png" alt="" />
+            <h1>Dear ${safeName},</h1>
+            <p>I’m not always good at saying things at the right time, so I made this little page for you.</p>
+            <div class="note">
+              I know… I may have made you wait a little too long already 😅<br /><br />
+              So I thought it’s finally time to say this properly.<br /><br />
+              I just really like being around you.<br />
+              It feels easy, and somehow my day is always a bit better with you.<br /><br />
+              So there’s one thing I want to ask you.
+            </div>
+          </div>
+          <div class="controls">
+            <button onclick="goNext()">Keep going</button>
+            ${dots(2)}
+          </div>
+        `;
+      }
+
+      if (step === 3) {
+        countdownPage(3);
+      }
+
+      if (step === 4) {
+        countdownPage(2);
+      }
+
+      if (step === 5) {
+        countdownPage(1);
+      }
+
+      if (step === 6) {
+        app.innerHTML = `
+          <div class="content soft-center">
+            <div>
+              <img class="mascot mascot-large" src="assets/bear-peek.png" alt="" />
+              <div class="tiny">Before the last page</div>
+              <h1>Are you sure?</h1>
+              <p class="sure-copy">If you press this, there’s no going back for me anymore.</p>
+              <p class="mini-note">Okay maybe a little dramatic… but I mean it 🤍</p>
+            </div>
+          </div>
+          <div class="controls">
+            <button onclick="goNext()">Okay… show me 🤍</button>
+          </div>
+        `;
+      }
+
+      if (step === 7) {
+        app.innerHTML = `
+          <div class="content soft-center">
+            <div>
+              <img class="mascot mascot-large" src="assets/bear-flower.png" alt="" />
+              <div class="tiny">One little question</div>
+              <h1 class="question">Can you be my girlfriend?</h1>
+              <p>Please look at me after this.</p>
+            </div>
+          </div>
+          <div class="controls">
+            <button onclick="goNext()">Look at me 🤍</button>
+          </div>
+        `;
+      }
+
+      if (step === 8) {
+        app.innerHTML = `
+          <div class="content soft-center">
+            <div>
+              <img class="mascot mascot-large" src="assets/bear-point.png" alt="" />
+              <h1>Now look at me.</h1>
+              <p>I’m waiting for your answer.</p>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="secondary-button" onclick="restart()">Start again</button>
+          </div>
+        `;
+      }
+    }
+
+    function goNext() {
+      step += 1;
+      render();
+    }
+
+    function saveName() {
+      const input = document.getElementById("personName");
+      const error = document.getElementById("nameError");
+      personName = input.value.trim();
+
+      if (!personName) {
+        error.textContent = "Please enter your name first.";
+        return;
+      }
+
+      step = 2;
+      render();
+    }
+
+    function restart() {
+      step = 0;
+      personName = "";
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>
