@@ -402,28 +402,45 @@
 
     .reaction-bubble {
       position: absolute;
-      z-index: 8;
-      top: 92px;
+      z-index: 12;
+      top: 0;
       left: 50%;
-      max-width: min(82%, 300px);
+      width: max-content;
+      max-width: min(72%, 255px);
       padding: 10px 14px;
-      border: 1px solid rgba(217, 120, 143, 0.24);
+      border: 1px solid rgba(217, 120, 143, 0.28);
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(255, 255, 255, 0.96);
       color: #66585d;
       font-size: 13px;
       line-height: 1.35;
       text-align: center;
-      box-shadow: 0 10px 26px rgba(97, 57, 69, 0.12);
+      box-shadow: 0 10px 26px rgba(97, 57, 69, 0.14);
       pointer-events: none;
       opacity: 0;
-      transform: translate(-50%, 8px) scale(0.96);
-      transition: opacity 160ms ease, transform 180ms ease;
+      transform: translate(-50%, calc(-100% + 8px)) scale(0.96);
+      transform-origin: 50% 100%;
+      transition: opacity 160ms ease, transform 190ms ease;
+      will-change: transform, opacity;
+    }
+
+    .reaction-bubble::after {
+      content: "";
+      position: absolute;
+      left: var(--tail-left, 40%);
+      bottom: -6px;
+      width: 11px;
+      height: 11px;
+      border-right: 1px solid rgba(217, 120, 143, 0.28);
+      border-bottom: 1px solid rgba(217, 120, 143, 0.28);
+      background: rgba(255, 255, 255, 0.96);
+      transform: translateX(-50%) rotate(45deg);
+      border-radius: 0 0 3px 0;
     }
 
     .reaction-bubble.show {
       opacity: 1;
-      transform: translate(-50%, 0) scale(1);
+      transform: translate(-50%, calc(-100% - 7px)) scale(1);
     }
 
     .type-hint {
@@ -1308,11 +1325,39 @@
         app.appendChild(bubble);
       }
 
+      bubble.classList.remove("show");
       bubble.textContent = message;
-      bubble.classList.add("show");
+
+      requestAnimationFrame(() => {
+        const cardRect = app.getBoundingClientRect();
+        const mascotRect = mascot.getBoundingClientRect();
+        const bubbleWidth = bubble.offsetWidth;
+
+        const mascotCenter = mascotRect.left - cardRect.left + (mascotRect.width / 2);
+        const desiredCenter = mascotCenter + 38;
+        const halfBubble = bubbleWidth / 2;
+        const safePadding = 12;
+
+        const bubbleCenter = Math.min(
+          cardRect.width - halfBubble - safePadding,
+          Math.max(halfBubble + safePadding, desiredCenter)
+        );
+
+        const bubbleLeftEdge = bubbleCenter - halfBubble;
+        const tailPosition = Math.min(
+          bubbleWidth - 22,
+          Math.max(22, mascotCenter - bubbleLeftEdge)
+        );
+
+        bubble.style.left = `${bubbleCenter}px`;
+        bubble.style.top = `${mascotRect.top - cardRect.top + 5}px`;
+        bubble.style.setProperty("--tail-left", `${tailPosition}px`);
+
+        requestAnimationFrame(() => bubble.classList.add("show"));
+      });
 
       clearTimeout(reactionTimer);
-      reactionTimer = setTimeout(() => bubble.classList.remove("show"), 2100);
+      reactionTimer = setTimeout(() => bubble.classList.remove("show"), 2200);
     }
 
     function startDearTyping() {
