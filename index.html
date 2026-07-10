@@ -906,6 +906,72 @@
       }
     }
 
+
+
+    /* v25: hidden easter eggs */
+    .secret-toast {
+      position: absolute;
+      z-index: 24;
+      left: 50%;
+      bottom: 24px;
+      width: max-content;
+      max-width: calc(100% - 44px);
+      padding: 12px 16px;
+      border: 1px solid rgba(217, 120, 143, 0.30);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.96);
+      color: #66585d;
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+      box-shadow: 0 14px 34px rgba(97, 57, 69, 0.16);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 10px) scale(0.96);
+      transition: opacity 180ms ease, transform 220ms cubic-bezier(.2,.78,.24,1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .secret-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    .secret-toast::before {
+      content: "✦";
+      margin-right: 6px;
+      color: var(--accent-dark);
+    }
+
+    .dear-secret-target {
+      cursor: default;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .dear-secret-target.secret-found {
+      animation: secretHeadingGlow 680ms ease both;
+    }
+
+    @keyframes secretHeadingGlow {
+      0%, 100% {
+        text-shadow: none;
+        transform: scale(1);
+      }
+      45% {
+        color: var(--accent-dark);
+        text-shadow: 0 8px 24px rgba(197, 95, 121, 0.22);
+        transform: scale(1.025);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dear-secret-target.secret-found {
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -929,6 +995,13 @@
     let activeMoodLayer = 0;
     let firstRender = true;
     let loveParticleInterval = null;
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    let suppressNextMascotClick = false;
+    let dearSecretTapCount = 0;
+    let dearSecretResetTimer = null;
+    let finalSecretLastTap = 0;
+    let secretToastTimer = null;
 
     const app = document.getElementById("app");
     const effectsLayer = document.getElementById("effectsLayer");
@@ -1104,7 +1177,7 @@
         app.innerHTML = `
           <div class="content">
 <img class="mascot" src="assets/bear-letter.png" alt="" />
-            <h1>Dear ${safeName},</h1>
+            <h1 id="dearHeading" class="dear-secret-target">Dear ${safeName},</h1>
             <p>I’m not always good at saying things at the right time, so I made this little page for you.</p>
             <div class="note typewriter typing-caret" id="dearNote" role="button" tabindex="0" aria-label="Tap to reveal the full message"></div>
             <div class="type-hint" id="typeHint">Tap the message to show all</div>
@@ -1208,6 +1281,11 @@
 
       if (step === 8) {
         startLookReveal();
+        enableFinalPageSecret();
+      }
+
+      if (step === 2) {
+        enableDearHeadingSecret();
       }
     }
 
@@ -1323,19 +1401,61 @@
 
       mascot.setAttribute("role", "button");
       mascot.setAttribute("tabindex", "0");
-      mascot.setAttribute("aria-label", "Tap the bear");
+      mascot.setAttribute("aria-label", "Tap or hold the bear");
 
-      const react = () => showMascotReaction(mascot, reactions[step] || "Hi 🤍");
-      mascot.addEventListener("click", react);
+      const clearLongPress = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      mascot.addEventListener("pointerdown", event => {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+
+        clearLongPress();
+        longPressTriggered = false;
+
+        longPressTimer = setTimeout(() => {
+          longPressTriggered = true;
+          suppressNextMascotClick = true;
+
+          if (navigator.vibrate) {
+            navigator.vibrate(35);
+          }
+
+          showMascotReaction(
+            mascot,
+            "Okay… truth is, I’ve been nervous about this all day 😅",
+            3200
+          );
+        }, 2000);
+      });
+
+      mascot.addEventListener("pointerup", clearLongPress);
+      mascot.addEventListener("pointercancel", clearLongPress);
+      mascot.addEventListener("pointerleave", clearLongPress);
+
+      mascot.addEventListener("click", event => {
+        if (suppressNextMascotClick || longPressTriggered) {
+          event.preventDefault();
+          suppressNextMascotClick = false;
+          longPressTriggered = false;
+          return;
+        }
+
+        showMascotReaction(mascot, reactions[step] || "Hi 🤍");
+      });
+
       mascot.addEventListener("keydown", event => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          react();
+          showMascotReaction(mascot, reactions[step] || "Hi 🤍");
         }
       });
     }
 
-    function showMascotReaction(mascot, message) {
+    function showMascotReaction(mascot, message, duration = 2200) {
       mascot.classList.remove("is-reacting");
       void mascot.offsetWidth;
       mascot.classList.add("is-reacting");
@@ -1379,7 +1499,87 @@
       });
 
       clearTimeout(reactionTimer);
-      reactionTimer = setTimeout(() => bubble.classList.remove("show"), 2200);
+      reactionTimer = setTimeout(() => bubble.classList.remove("show"), duration);
+    }
+
+
+    function showSecretToast(message, duration = 3200) {
+      let toast = app.querySelector(".secret-toast");
+
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.className = "secret-toast";
+        app.appendChild(toast);
+      }
+
+      toast.classList.remove("show");
+      toast.textContent = message;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => toast.classList.add("show"));
+      });
+
+      clearTimeout(secretToastTimer);
+      secretToastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, duration);
+    }
+
+    function enableDearHeadingSecret() {
+      const heading = document.getElementById("dearHeading");
+      if (!heading) return;
+
+      dearSecretTapCount = 0;
+      clearTimeout(dearSecretResetTimer);
+
+      heading.addEventListener("click", () => {
+        dearSecretTapCount += 1;
+
+        clearTimeout(dearSecretResetTimer);
+        dearSecretResetTimer = setTimeout(() => {
+          dearSecretTapCount = 0;
+        }, 950);
+
+        if (dearSecretTapCount >= 3) {
+          dearSecretTapCount = 0;
+          heading.classList.remove("secret-found");
+          void heading.offsetWidth;
+          heading.classList.add("secret-found");
+
+          const safeDisplayName = personName.trim() || "you";
+          showSecretToast(
+            `Yep… this page was definitely made for ${safeDisplayName}. 🤍`,
+            3400
+          );
+        }
+      });
+    }
+
+    function enableFinalPageSecret() {
+      finalSecretLastTap = 0;
+
+      app.addEventListener("pointerup", event => {
+        if (step !== 8) return;
+        if (event.target.closest(".mascot")) return;
+
+        const now = Date.now();
+
+        if (now - finalSecretLastTap <= 440) {
+          finalSecretLastTap = 0;
+
+          if (navigator.vibrate) {
+            navigator.vibrate(25);
+          }
+
+          showSecretToast(
+            "I’m probably smiling like an idiot right now. 😅",
+            3800
+          );
+          return;
+        }
+
+        finalSecretLastTap = now;
+      }, { once: false });
     }
 
     function startDearTyping() {
@@ -1567,7 +1767,14 @@
     function restart() {
       clearTyping();
       clearEffects();
+      clearTimeout(longPressTimer);
+      clearTimeout(dearSecretResetTimer);
+      clearTimeout(secretToastTimer);
       transitionLocked = false;
+      longPressTriggered = false;
+      suppressNextMascotClick = false;
+      dearSecretTapCount = 0;
+      finalSecretLastTap = 0;
       step = 0;
       personName = "";
       render();

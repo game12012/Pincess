@@ -108,3 +108,21 @@ The name only exists temporarily inside the browser while the page is open.
 
 V24 FIX
 - Fixed a JavaScript syntax issue that caused a blank white page.
+
+
+HIDDEN EASTER EGGS — v25
+------------------------
+1. Long-press any bear for 2 seconds.
+   - A hidden speech bubble appears:
+     “Okay… truth is, I’ve been nervous about this all day 😅”
+   - Supported on touchscreens and desktop pointer input.
+
+2. Tap the “Dear [Name]” heading three times quickly.
+   - A personalized hidden message appears using the entered name:
+     “Yep… this page was definitely made for [Name]. 🤍”
+
+3. Double-tap an empty area on the final “Now look at me.” page.
+   - A hidden message appears:
+     “I’m probably smiling like an idiot right now. 😅”
+
+These easter eggs do not interrupt the normal page flow.
