@@ -815,11 +815,12 @@
 
     /* v17: subtle tap hint for the bear */
     .tap-hint {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 5px;
-      width: fit-content;
+      width: max-content;
+      max-width: calc(100% - 24px);
       margin: 0 auto 14px;
       padding: 8px 13px;
       border: 1px solid rgba(217, 120, 143, 0.34);
@@ -836,6 +837,9 @@
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       transition: opacity 180ms ease, transform 180ms ease;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     .tap-hint::before {
