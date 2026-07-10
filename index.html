@@ -814,7 +814,7 @@
         }
 
         const current = typingFullText[index - 1];
-        const delay = current === "\n" ? 85 : /[.!?]/.test(current) ? 105 : 13;
+        const delay = current === "\n" ? 180 : /[.!?]/.test(current) ? 220 : 34;
         typingTimer = setTimeout(typeNext, delay);
       };
 
@@ -867,7 +867,7 @@
       button.disabled = true;
       button.textContent = "No turning back now 😳";
       button.style.opacity = "0.94";
-      setTimeout(goNext, 650);
+      setTimeout(goNext, 2000);
     }
 
     function goNext() {
