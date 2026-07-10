@@ -670,6 +670,86 @@
       }
     }
 
+
+
+    /* v14: final two-page polish */
+    .final-mascot.bouquet-sway.show {
+      animation:
+        bouquetSway 2.8s ease-in-out 900ms infinite,
+        finalBearFloat 3.8s ease-in-out 720ms infinite;
+      transform-origin: 50% 86%;
+    }
+
+    .final-exit-button.is-leaving {
+      opacity: 0.96;
+      transform: scale(0.99);
+    }
+
+    .look-stage {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 680ms ease, transform 720ms cubic-bezier(.2,.78,.24,1);
+    }
+
+    .look-stage.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .look-stage .look-mascot {
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+      transition: opacity 560ms ease, transform 620ms cubic-bezier(.2,.78,.24,1);
+    }
+
+    .look-stage .look-mascot.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      animation: pointOnce 920ms cubic-bezier(.2,.78,.24,1) 380ms both;
+      transform-origin: 50% 86%;
+    }
+
+    .look-stage .look-title,
+    .look-stage .look-subcopy {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 520ms ease, transform 620ms ease;
+    }
+
+    .look-stage .look-title.show,
+    .look-stage .look-subcopy.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .look-subcopy {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    @keyframes bouquetSway {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      25% { transform: rotate(-1.2deg) translateY(-1px); }
+      50% { transform: rotate(0.8deg) translateY(-2px); }
+      75% { transform: rotate(-0.7deg) translateY(-1px); }
+    }
+
+    @keyframes pointOnce {
+      0% { transform: translateY(0) rotate(0deg) scale(1); }
+      36% { transform: translateY(-4px) rotate(-1.2deg) scale(1.035); }
+      66% { transform: translateY(1px) rotate(0.7deg) scale(0.995); }
+      100% { transform: translateY(0) rotate(0deg) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .final-mascot.bouquet-sway.show,
+      .look-stage .look-mascot.show {
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -829,7 +909,7 @@
         app.innerHTML = `
           <div class="content soft-center final-stage">
             <div>
-              <img class="mascot mascot-large final-mascot" src="assets/bear-flower.png" alt="" />
+              <img class="mascot mascot-large final-mascot bouquet-sway" src="assets/bear-flower.png" alt="" />
               <div class="tiny final-kicker">One little question</div>
               <h1 class="final-question">
                 <span class="question-line first">Can you</span>
@@ -839,22 +919,21 @@
             </div>
           </div>
           <div class="controls final-button-wrap">
-            <button onclick="goNext()">Look at me <span class="final-heartbeat">🤍</span></button>
+            <button class="final-exit-button" onclick="leaveFinalPage(this)">
+              Look at me <span class="final-heartbeat">🤍</span>
+            </button>
           </div>
         `;
       }
 
       if (step === 8) {
         app.innerHTML = `
-          <div class="content soft-center">
+          <div class="content soft-center look-stage">
             <div>
-              <img class="mascot mascot-large" src="assets/bear-point.png" alt="" />
-              <h1>Now look at me.</h1>
-              <p>I’m waiting for your answer.</p>
+              <img class="mascot mascot-large look-mascot" src="assets/bear-point.png" alt="" />
+              <h1 class="look-title">Now look at me.</h1>
+              <p class="look-subcopy">I’ll ask you properly myself. 🤍</p>
             </div>
-          </div>
-          <div class="controls">
-            <button class="secondary-button" onclick="restart()">Start again</button>
           </div>
         `;
       }
@@ -877,6 +956,10 @@
 
       if (step === 7) {
         startFinalReveal();
+      }
+
+      if (step === 8) {
+        startLookReveal();
       }
     }
 
@@ -911,6 +994,50 @@
       setTimeout(() => {
         if (step === 7) launchLoveParticles();
       }, 1050);
+    }
+
+
+    function leaveFinalPage(button) {
+      if (!button || button.disabled || transitionLocked) return;
+
+      transitionLocked = true;
+      button.disabled = true;
+      button.classList.add("is-leaving");
+      button.textContent = "Okay… here goes 😳";
+
+      setTimeout(() => {
+        step = 8;
+        render();
+        transitionLocked = false;
+      }, 1000);
+    }
+
+    function startLookReveal() {
+      clearEffects();
+      app.classList.remove("final-mode");
+
+      const stage = app.querySelector(".look-stage");
+      if (!stage) return;
+
+      const mascot = stage.querySelector(".look-mascot");
+      const title = stage.querySelector(".look-title");
+      const subcopy = stage.querySelector(".look-subcopy");
+
+      setTimeout(() => {
+        if (step === 8) stage.classList.add("show");
+      }, 80);
+
+      setTimeout(() => {
+        if (step === 8 && mascot) mascot.classList.add("show");
+      }, 220);
+
+      setTimeout(() => {
+        if (step === 8 && title) title.classList.add("show");
+      }, 760);
+
+      setTimeout(() => {
+        if (step === 8 && subcopy) subcopy.classList.add("show");
+      }, 1500);
     }
 
     function enableMascotReaction() {
@@ -1026,7 +1153,7 @@
 
     function launchLoveParticles() {
       const symbols = ["♡", "♥", "❀", "♡", "♥"];
-      const total = 15;
+      const total = 8;
 
       for (let i = 0; i < total; i += 1) {
         const particle = document.createElement("span");
