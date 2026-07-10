@@ -815,30 +815,53 @@
 
     /* v17: subtle tap hint for the bear */
     .tap-hint {
-      margin-top: -2px;
-      margin-bottom: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      width: fit-content;
+      margin: 0 auto 14px;
+      padding: 8px 13px;
+      border: 1px solid rgba(217, 120, 143, 0.34);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      color: #7a626a;
       font-size: 12px;
-      line-height: 1.35;
-      color: rgba(125, 109, 114, 0.76);
+      line-height: 1;
       text-align: center;
       letter-spacing: 0.01em;
-      opacity: 0.95;
+      box-shadow: 0 8px 20px rgba(197, 95, 121, 0.12);
+      opacity: 0.98;
       user-select: none;
-      transition: opacity 180ms ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .tap-hint::before {
+      content: "👆";
+      font-size: 13px;
+      transform: translateY(-0.5px);
     }
 
     .tap-hint .tap-word {
-      color: rgba(197, 95, 121, 0.86);
-      font-weight: 600;
+      color: var(--accent-dark);
+      font-weight: 700;
     }
 
     .tap-hint.is-soft {
-      animation: tapHintPulse 2.2s ease-in-out infinite;
+      animation: tapHintPulse 1.9s ease-in-out infinite;
     }
 
     @keyframes tapHintPulse {
-      0%, 100% { opacity: 0.62; }
-      50% { opacity: 0.98; }
+      0%, 100% {
+        opacity: 0.78;
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.025);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
