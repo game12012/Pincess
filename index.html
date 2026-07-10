@@ -1085,16 +1085,27 @@
     function confirmReveal(button) {
       if (!button || button.disabled || transitionLocked) return;
 
+      transitionLocked = true;
+      button.disabled = true;
       button.textContent = "No turning back now 😳";
       button.style.opacity = "0.94";
 
-      playPageTransition(() => {
+      setTimeout(() => {
         step += 1;
         render();
-      }, 2000, 1300);
+        transitionLocked = false;
+      }, 2000);
     }
 
     function goNext() {
+      // Countdown page "3" changes immediately without shaking.
+      // Countdown pages "2" and "1" still use the nervous shake.
+      if (step === 3) {
+        step += 1;
+        render();
+        return;
+      }
+
       playPageTransition(() => {
         step += 1;
         render();
@@ -1111,10 +1122,8 @@
         return;
       }
 
-      playPageTransition(() => {
-        step = 2;
-        render();
-      });
+      step = 2;
+      render();
     }
 
     function restart() {
