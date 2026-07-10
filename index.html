@@ -811,6 +811,42 @@
       }
     }
 
+
+
+    /* v17: subtle tap hint for the bear */
+    .tap-hint {
+      margin-top: -2px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: rgba(125, 109, 114, 0.76);
+      text-align: center;
+      letter-spacing: 0.01em;
+      opacity: 0.95;
+      user-select: none;
+      transition: opacity 180ms ease;
+    }
+
+    .tap-hint .tap-word {
+      color: rgba(197, 95, 121, 0.86);
+      font-weight: 600;
+    }
+
+    .tap-hint.is-soft {
+      animation: tapHintPulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes tapHintPulse {
+      0%, 100% { opacity: 0.62; }
+      50% { opacity: 0.98; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tap-hint.is-soft {
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1097,6 +1133,7 @@
       setTimeout(() => app.classList.remove("page-fade-in"), 480);
 
       enableMascotReaction();
+      createTapHint();
 
       if (step === 2) {
         setTimeout(startDearTyping, 220);
@@ -1188,6 +1225,21 @@
       setTimeout(() => {
         if (step === 8 && subcopy) subcopy.classList.add("show");
       }, 1500);
+    }
+
+
+    function createTapHint() {
+      const mascot = app.querySelector(".mascot");
+      if (!mascot) return;
+
+      const existingHint = app.querySelector(".tap-hint");
+      if (existingHint) existingHint.remove();
+
+      const hint = document.createElement("div");
+      hint.className = "tap-hint is-soft";
+      hint.innerHTML = 'psst… <span class="tap-word">tap</span> the bear 🤍';
+
+      mascot.insertAdjacentElement("afterend", hint);
     }
 
     function enableMascotReaction() {

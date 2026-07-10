@@ -65,6 +65,7 @@ PAGE FLOW
    - No restart button is shown, so the real-life moment is not interrupted.
 
 INTERACTIVE FEATURES
+- A subtle on-screen hint invites the user to tap the bear on each page.
 - Tap any bear to see a small reaction message.
 - Bear performs a small bounce reaction when tapped.
 - Slow typewriter effect on the Dear page.
