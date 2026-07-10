@@ -397,6 +397,122 @@
       .card { min-height: 500px; padding: 28px 22px 24px; border-radius: 28px; }
       p { font-size: 16px; }
     }
+
+
+    /* Playful variant extras */
+    .mascot {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .mascot.is-reacting {
+      animation: mascotBounce 520ms cubic-bezier(.2,.8,.25,1) both;
+    }
+
+    .reaction-bubble {
+      position: absolute;
+      z-index: 8;
+      top: 92px;
+      left: 50%;
+      max-width: min(82%, 300px);
+      padding: 10px 14px;
+      border: 1px solid rgba(217, 120, 143, 0.24);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #66585d;
+      font-size: 13px;
+      line-height: 1.35;
+      text-align: center;
+      box-shadow: 0 10px 26px rgba(97, 57, 69, 0.12);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, 8px) scale(0.96);
+      transition: opacity 160ms ease, transform 180ms ease;
+    }
+
+    .reaction-bubble.show {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    .type-hint {
+      margin-top: 9px;
+      color: rgba(125, 109, 114, 0.72);
+      font-size: 12px;
+      text-align: center;
+      transition: opacity 180ms ease;
+    }
+
+    .note.typewriter {
+      min-height: 250px;
+      white-space: pre-line;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .typing-caret::after {
+      content: "";
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      margin-left: 3px;
+      vertical-align: -0.12em;
+      background: rgba(197, 95, 121, 0.72);
+      animation: caretBlink 720ms steps(1) infinite;
+    }
+
+    .effects-layer {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    .love-particle {
+      position: absolute;
+      left: var(--x);
+      bottom: -40px;
+      font-size: var(--size);
+      opacity: 0;
+      filter: drop-shadow(0 5px 8px rgba(197, 95, 121, 0.12));
+      animation: loveFloat var(--duration) ease-out var(--delay) forwards;
+      transform: translateX(-50%) rotate(var(--rotate));
+    }
+
+    @keyframes mascotBounce {
+      0%   { transform: translateY(0) rotate(0deg) scale(1); }
+      28%  { transform: translateY(-9px) rotate(-2deg) scale(1.04); }
+      58%  { transform: translateY(2px) rotate(2deg) scale(0.99); }
+      100% { transform: translateY(0) rotate(0deg) scale(1); }
+    }
+
+    @keyframes caretBlink {
+      0%, 48% { opacity: 1; }
+      49%, 100% { opacity: 0; }
+    }
+
+    @keyframes loveFloat {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 0) rotate(var(--rotate)) scale(0.75);
+      }
+      14% { opacity: 0.9; }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--drift)), -112vh) rotate(calc(var(--rotate) + 80deg)) scale(1.18);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mascot.is-reacting,
+      .love-particle,
+      .typing-caret::after {
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -406,12 +522,17 @@
   <main class="phone-frame">
     <section class="card" id="app"></section>
   </main>
+  <div class="effects-layer" id="effectsLayer" aria-hidden="true"></div>
 
   <script>
     let step = 0;
     let personName = "";
+    let typingTimer = null;
+    let typingFullText = "";
+    let reactionTimer = null;
 
     const app = document.getElementById("app");
+    const effectsLayer = document.getElementById("effectsLayer");
 
     function escapeHTML(value) {
       return String(value)
@@ -507,13 +628,8 @@
             <img class="mascot" src="assets/bear-letter.png" alt="" />
             <h1>Dear ${safeName},</h1>
             <p>I’m not always good at saying things at the right time, so I made this little page for you.</p>
-            <div class="note">
-              I know… I may have made you wait a little too long already 😅<br /><br />
-              So I thought it’s finally time to say this properly.<br /><br />
-              I just really like being around you.<br />
-              It feels easy, and somehow my day is always a bit better with you.<br /><br />
-              So there’s one thing I want to ask you.
-            </div>
+            <div class="note typewriter typing-caret" id="dearNote" role="button" tabindex="0" aria-label="Tap to reveal the full message"></div>
+            <div class="type-hint" id="typeHint">Tap the message to show all</div>
           </div>
           <div class="controls">
             <button onclick="goNext()">Keep going</button>
@@ -546,7 +662,7 @@
             </div>
           </div>
           <div class="controls">
-            <button onclick="goNext()">Okay… show me 🤍</button>
+            <button onclick="confirmReveal(this)">Okay… show me 🤍</button>
           </div>
         `;
       }
@@ -581,6 +697,177 @@
           </div>
         `;
       }
+
+      setupAfterRender();
+    }
+
+
+
+    function setupAfterRender() {
+      clearTyping();
+      clearEffects();
+      enableMascotReaction();
+
+      if (step === 2) {
+        setTimeout(startDearTyping, 220);
+      }
+
+      if (step === 7) {
+        setTimeout(launchLoveParticles, 240);
+      }
+    }
+
+    function enableMascotReaction() {
+      const mascot = app.querySelector(".mascot");
+      if (!mascot) return;
+
+      const reactions = {
+        0: "Hi 👋 I promise this won’t take long.",
+        1: "Take your time… I’ll wait.",
+        2: "I practiced this part in my head a lot 😅",
+        3: "Still okay… probably.",
+        4: "Why did I add a countdown? 😳",
+        5: "Too late to run now.",
+        6: "You made it this far 👀",
+        7: "This one’s really from me 🤍",
+        8: "Yep… me. Look up now."
+      };
+
+      mascot.setAttribute("role", "button");
+      mascot.setAttribute("tabindex", "0");
+      mascot.setAttribute("aria-label", "Tap the bear");
+
+      const react = () => showMascotReaction(mascot, reactions[step] || "Hi 🤍");
+      mascot.addEventListener("click", react);
+      mascot.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          react();
+        }
+      });
+    }
+
+    function showMascotReaction(mascot, message) {
+      mascot.classList.remove("is-reacting");
+      void mascot.offsetWidth;
+      mascot.classList.add("is-reacting");
+
+      let bubble = app.querySelector(".reaction-bubble");
+      if (!bubble) {
+        bubble = document.createElement("div");
+        bubble.className = "reaction-bubble";
+        app.appendChild(bubble);
+      }
+
+      bubble.textContent = message;
+      bubble.classList.add("show");
+
+      clearTimeout(reactionTimer);
+      reactionTimer = setTimeout(() => bubble.classList.remove("show"), 2100);
+    }
+
+    function startDearTyping() {
+      const note = document.getElementById("dearNote");
+      const hint = document.getElementById("typeHint");
+      if (!note) return;
+
+      typingFullText = [
+        "I know… I may have made you wait a little too long already 😅",
+        "",
+        "So I thought it’s finally time to say this properly.",
+        "",
+        "I just really like being around you.",
+        "It feels easy, and somehow my day is always a bit better with you.",
+        "",
+        "So there’s one thing I want to ask you."
+      ].join("\n");
+
+      let index = 0;
+      note.textContent = "";
+      note.classList.add("typing-caret");
+
+      const finish = () => {
+        clearTyping();
+        note.textContent = typingFullText;
+        note.classList.remove("typing-caret");
+        if (hint) hint.style.opacity = "0";
+      };
+
+      note.addEventListener("click", finish, { once: true });
+      note.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          finish();
+        }
+      }, { once: true });
+
+      const typeNext = () => {
+        if (!document.body.contains(note)) return;
+        note.textContent = typingFullText.slice(0, index + 1);
+        index += 1;
+
+        if (index >= typingFullText.length) {
+          note.classList.remove("typing-caret");
+          if (hint) hint.style.opacity = "0";
+          typingTimer = null;
+          return;
+        }
+
+        const current = typingFullText[index - 1];
+        const delay = current === "\n" ? 85 : /[.!?]/.test(current) ? 105 : 13;
+        typingTimer = setTimeout(typeNext, delay);
+      };
+
+      typeNext();
+    }
+
+    function clearTyping() {
+      if (typingTimer) {
+        clearTimeout(typingTimer);
+        typingTimer = null;
+      }
+    }
+
+    function launchLoveParticles() {
+      const symbols = ["♡", "♥", "❀", "♡", "♥"];
+      const total = 15;
+
+      for (let i = 0; i < total; i += 1) {
+        const particle = document.createElement("span");
+        particle.className = "love-particle";
+        particle.textContent = symbols[i % symbols.length];
+
+        const x = 8 + Math.random() * 84;
+        const size = 16 + Math.random() * 16;
+        const duration = 3.2 + Math.random() * 1.8;
+        const delay = Math.random() * 0.9;
+        const drift = `${-70 + Math.random() * 140}px`;
+        const rotate = `${-25 + Math.random() * 50}deg`;
+        const colors = ["#d9788f", "#ee9aad", "#c55f79", "#f0b3bf"];
+
+        particle.style.setProperty("--x", `${x}%`);
+        particle.style.setProperty("--size", `${size}px`);
+        particle.style.setProperty("--duration", `${duration}s`);
+        particle.style.setProperty("--delay", `${delay}s`);
+        particle.style.setProperty("--drift", drift);
+        particle.style.setProperty("--rotate", rotate);
+        particle.style.color = colors[i % colors.length];
+
+        effectsLayer.appendChild(particle);
+        setTimeout(() => particle.remove(), (duration + delay + 0.4) * 1000);
+      }
+    }
+
+    function clearEffects() {
+      effectsLayer.innerHTML = "";
+    }
+
+    function confirmReveal(button) {
+      if (!button || button.disabled) return;
+      button.disabled = true;
+      button.textContent = "No turning back now 😳";
+      button.style.opacity = "0.94";
+      setTimeout(goNext, 650);
     }
 
     function goNext() {
@@ -603,6 +890,8 @@
     }
 
     function restart() {
+      clearTyping();
+      clearEffects();
       step = 0;
       personName = "";
       render();
