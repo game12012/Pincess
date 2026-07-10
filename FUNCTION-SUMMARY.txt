@@ -44,7 +44,7 @@ PAGE FLOW
    - After pressing, the button changes to:
      “No turning back now 😳”
    - The message stays for 2 seconds.
-   - This page does not use the bear-shake effect.
+   - The whole card gently shakes during this pause.
 
 8. Final question page
    - Bear holds and gently moves a bouquet.
@@ -65,7 +65,7 @@ PAGE FLOW
    - No restart button is shown, so the real-life moment is not interrupted.
 
 INTERACTIVE FEATURES
-- A visible rounded tap hint invites the user to tap the bear on each page.
+- A visible rounded tap hint invites the user to tap the bear on the first page only.
 - Tap any bear to see a speech bubble above and slightly to the right of the bear.
 - Bear performs a small bounce reaction when tapped.
 - Slow typewriter effect on the Dear page.

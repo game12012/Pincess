@@ -671,8 +671,26 @@
       cursor: default;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .mascot.page-transition-shake {
+    
+    .card.card-shake {
+      transform-origin: 50% 50%;
+      animation: wholeCardShake 620ms cubic-bezier(.36,.07,.19,.97) infinite;
+    }
+
+    @keyframes wholeCardShake {
+      0%   { transform: translateX(0) rotate(0deg); }
+      14%  { transform: translateX(-1.8px) rotate(-0.18deg); }
+      28%  { transform: translateX(1.8px) rotate(0.18deg); }
+      42%  { transform: translateX(-2.3px) rotate(-0.22deg); }
+      56%  { transform: translateX(2.3px) rotate(0.22deg); }
+      70%  { transform: translateX(-1.5px) rotate(-0.14deg); }
+      84%  { transform: translateX(1.5px) rotate(0.14deg); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+
+@media (prefers-reduced-motion: reduce) {
+      .mascot.page-transition-shake,
+      .card.card-shake {
         animation: none !important;
       }
     }
@@ -909,7 +927,7 @@
     let reactionTimer = null;
     let transitionLocked = false;
     let activeMoodLayer = 0;
-    let firstRender = true;
+    let firstRender = true;\n    let loveParticleInterval = null;
 
     const app = document.getElementById("app");
     const effectsLayer = document.getElementById("effectsLayer");
@@ -1165,6 +1183,7 @@
     function setupAfterRender() {
       clearTyping();
       clearEffects();
+      app.classList.remove("card-shake");
       applyMood(step, firstRender);
       firstRender = false;
 
@@ -1220,7 +1239,7 @@
       reveal(buttonWrap, 2600);
 
       setTimeout(() => {
-        if (step === 7) launchLoveParticles();
+        if (step === 7) startContinuousLoveParticles();
       }, 1050);
     }
 
@@ -1270,11 +1289,13 @@
 
 
     function createTapHint() {
-      const mascot = app.querySelector(".mascot");
-      if (!mascot) return;
-
       const existingHint = app.querySelector(".tap-hint");
       if (existingHint) existingHint.remove();
+
+      if (step !== 0) return;
+
+      const mascot = app.querySelector(".mascot");
+      if (!mascot) return;
 
       const hint = document.createElement("div");
       hint.className = "tap-hint is-soft";
@@ -1422,9 +1443,8 @@
       }
     }
 
-    function launchLoveParticles() {
+    function launchLoveParticles(total = 8) {
       const symbols = ["♡", "♥", "❀", "♡", "♥"];
-      const total = 8;
 
       for (let i = 0; i < total; i += 1) {
         const particle = document.createElement("span");
@@ -1452,7 +1472,21 @@
       }
     }
 
+    function startContinuousLoveParticles() {
+      if (loveParticleInterval) clearInterval(loveParticleInterval);
+      launchLoveParticles(5);
+      loveParticleInterval = setInterval(() => {
+        if (step === 7) {
+          launchLoveParticles(3);
+        }
+      }, 1400);
+    }
+
     function clearEffects() {
+      if (loveParticleInterval) {
+        clearInterval(loveParticleInterval);
+        loveParticleInterval = null;
+      }
       effectsLayer.innerHTML = "";
     }
 
@@ -1487,6 +1521,7 @@
       button.disabled = true;
       button.textContent = "No turning back now 😳";
       button.style.opacity = "0.94";
+      app.classList.add("card-shake");
 
       fadeOutBefore(() => {
         step += 1;
