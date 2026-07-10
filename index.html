@@ -639,6 +639,37 @@
       }
     }
 
+
+
+    /* Gentle bear shake before changing pages */
+    .mascot.page-transition-shake {
+      transform-origin: 50% 82%;
+      animation: pageTransitionShake var(--shake-duration, 900ms)
+        cubic-bezier(.36,.07,.19,.97) both !important;
+    }
+
+    @keyframes pageTransitionShake {
+      0%   { transform: translateX(0) rotate(0deg) scale(1); }
+      12%  { transform: translateX(-2px) rotate(-0.8deg) scale(1.005); }
+      24%  { transform: translateX(2px) rotate(0.8deg) scale(1.008); }
+      36%  { transform: translateX(-2.5px) rotate(-1deg) scale(1.006); }
+      48%  { transform: translateX(2.5px) rotate(1deg) scale(1.008); }
+      60%  { transform: translateX(-1.8px) rotate(-0.7deg) scale(1.005); }
+      72%  { transform: translateX(1.8px) rotate(0.7deg) scale(1.004); }
+      84%  { transform: translateX(-1px) rotate(-0.35deg) scale(1.002); }
+      100% { transform: translateX(0) rotate(0deg) scale(1); }
+    }
+
+    button:disabled {
+      cursor: default;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mascot.page-transition-shake {
+        animation: none !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -656,6 +687,7 @@
     let typingTimer = null;
     let typingFullText = "";
     let reactionTimer = null;
+    let transitionLocked = false;
 
     const app = document.getElementById("app");
     const effectsLayer = document.getElementById("effectsLayer");
@@ -1026,17 +1058,47 @@
       effectsLayer.innerHTML = "";
     }
 
+    function playPageTransition(callback, delay = 1050, shakeDuration = 900) {
+      if (transitionLocked) return;
+      transitionLocked = true;
+
+      clearTyping();
+
+      app.querySelectorAll("button").forEach(button => {
+        button.disabled = true;
+      });
+
+      const mascot = app.querySelector(".mascot");
+      if (mascot) {
+        mascot.classList.remove("is-reacting", "page-transition-shake");
+        mascot.style.setProperty("--shake-duration", `${shakeDuration}ms`);
+        void mascot.offsetWidth;
+        mascot.classList.add("page-transition-shake");
+      }
+
+      setTimeout(() => {
+        callback();
+        transitionLocked = false;
+      }, delay);
+    }
+
     function confirmReveal(button) {
-      if (!button || button.disabled) return;
-      button.disabled = true;
+      if (!button || button.disabled || transitionLocked) return;
+
       button.textContent = "No turning back now 😳";
       button.style.opacity = "0.94";
-      setTimeout(goNext, 2000);
+
+      playPageTransition(() => {
+        step += 1;
+        render();
+      }, 2000, 1300);
     }
 
     function goNext() {
-      step += 1;
-      render();
+      playPageTransition(() => {
+        step += 1;
+        render();
+      });
     }
 
     function saveName() {
@@ -1049,13 +1111,16 @@
         return;
       }
 
-      step = 2;
-      render();
+      playPageTransition(() => {
+        step = 2;
+        render();
+      });
     }
 
     function restart() {
       clearTyping();
       clearEffects();
+      transitionLocked = false;
       step = 0;
       personName = "";
       render();
